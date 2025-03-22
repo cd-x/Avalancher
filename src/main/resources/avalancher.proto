@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option java_package = "com.avalancher.grpc";
+option java_multiple_files = true;
+
+service avalancher{
+    rpc getWorkerId(google.protobuf.Empty) returns (int64);
+    rpc getTimestamp(google.protobuf.Empty) returns (int64);
+    rpc getId(google.protobuf.Empty) returns (UniqueIdResponse);
+    rpc getDatacenterId(google.protobuf.Empty) returns (int64);
+}
+
+message UniqueIdResponse{
+    string useragent = 1;
+}
