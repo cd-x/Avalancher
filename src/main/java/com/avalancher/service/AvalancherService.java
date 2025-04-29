@@ -7,9 +7,9 @@ import io.grpc.stub.StreamObserver;
 import java.time.Instant;
 import java.util.UUID;
 
-public class AvalancherService extends avalancherGrpc.avalancherImplBase {
-    private static final long WORKER_ID = 1L;
-    private static final long DATA_CENTER_ID = 100L;
+public class AvalancherService extends AvalancherGrpc.avalancherImplBase {
+    private static final short WORKER_ID = 1;
+    private static final short DATA_CENTER_ID = 100;
 
     @Override
     public void getWorkerId(Empty request, StreamObserver<WorkerIdResponse> responseObserver) {
@@ -23,7 +23,7 @@ public class AvalancherService extends avalancherGrpc.avalancherImplBase {
     @Override
     public void getTimestamp(Empty request, StreamObserver<TimeStampResponse> responseObserver) {
         TimeStampResponse response = TimeStampResponse.newBuilder()
-                .setTimstamp(Instant.now().toEpochMilli())
+                .setTimstamp()
                 .build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
@@ -32,7 +32,7 @@ public class AvalancherService extends avalancherGrpc.avalancherImplBase {
     @Override
     public void getId(Empty request, StreamObserver<UniqueIdResponse> responseObserver) {
         UniqueIdResponse response = UniqueIdResponse.newBuilder()
-                .setUseragent(UUID.randomUUID().toString())
+                .setUseragent(IdGenerator.getUniqueId(WORKER_ID, DATA_CENTER_ID, Instant.now().toEpochMilli(), (short) 123))
                 .build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
