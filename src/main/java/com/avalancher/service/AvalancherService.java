@@ -3,9 +3,7 @@ package com.avalancher.service;
 import com.avalancher.grpc.*;
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
-
 import java.time.Instant;
-import java.util.UUID;
 
 public class AvalancherService extends AvalancherGrpc.AvalancherImplBase {
     private static final short WORKER_ID = 1;
