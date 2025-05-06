@@ -40,3 +40,5 @@ build/
 .idea
 .idea/
 ./.idea/vcs.xml
+
+dependency-reduced-pom.xml
