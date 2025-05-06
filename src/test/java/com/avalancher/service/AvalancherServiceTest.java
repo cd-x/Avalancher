@@ -12,6 +12,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.IntStream;
+
+import static junit.framework.Assert.assertEquals;
 
 public class AvalancherServiceTest {
     private static Server server;
@@ -34,10 +41,10 @@ public class AvalancherServiceTest {
 
     @AfterAll
     public static void stopServer() {
-        if (channel != null) {
+        if (Objects.nonNull(channel)) {
             channel.shutdownNow();
         }
-        if (server != null) {
+        if (Objects.nonNull(server)) {
             server.shutdownNow();
         }
     }
@@ -45,8 +52,27 @@ public class AvalancherServiceTest {
     @Test
     public void testGenerateId() {
         UniqueIdResponse response = blockingStub.getId(Empty.newBuilder().build());
-        System.out.println("Generated ID: " + response.getUseragent());
+        System.out.println("Generated ID: " + response.getId());
     }
 
+    @Test
+    public void throttle_testing(){
+        long[] ids = new long[4096];
+        IntStream.range(0, 4096).forEach(i ->{
+            Thread t = new Thread(() ->{
+                UniqueIdResponse response = blockingStub.getId(Empty.newBuilder().build());
+                ids[i] = response.getId();
+            });
+            t.start();
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        Set<Long> set = new HashSet<>();
+        for(long id: ids) set.add(id);
+        assertEquals(ids.length, set.size());
+    }
 
 }
