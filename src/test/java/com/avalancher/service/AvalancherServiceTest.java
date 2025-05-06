@@ -10,17 +10,21 @@ import io.grpc.ServerBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static junit.framework.Assert.assertEquals;
 
 public class AvalancherServiceTest {
+    private static final Logger log = LoggerFactory.getLogger(AvalancherServiceTest.class);
     private static Server server;
     private static ManagedChannel channel;
     private static AvalancherGrpc.AvalancherBlockingStub blockingStub;
@@ -40,39 +44,48 @@ public class AvalancherServiceTest {
     }
 
     @AfterAll
-    public static void stopServer() {
+    public static void stopServer() throws InterruptedException {
         if (Objects.nonNull(channel)) {
             channel.shutdownNow();
         }
         if (Objects.nonNull(server)) {
-            server.shutdownNow();
+            server.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         }
     }
 
     @Test
     public void testGenerateId() {
         UniqueIdResponse response = blockingStub.getId(Empty.newBuilder().build());
-        System.out.println("Generated ID: " + response.getId());
+        log.info("Generated ID: {}", response.getId());
     }
 
     @Test
-    public void throttle_testing(){
-        long[] ids = new long[4096];
-        IntStream.range(0, 4096).forEach(i ->{
-            Thread t = new Thread(() ->{
-                UniqueIdResponse response = blockingStub.getId(Empty.newBuilder().build());
-                ids[i] = response.getId();
+    public void test4095ConcurrentGetIdCalls() throws InterruptedException {
+        int totalRequests = 4095;
+        ExecutorService executor = Executors.newFixedThreadPool(200);
+        CountDownLatch latch = new CountDownLatch(totalRequests);
+        Set<Long> idSet = Collections.synchronizedSet(new HashSet<>());
+
+        for (int i = 0; i < totalRequests; i++) {
+            executor.submit(() -> {
+                try {
+                    UniqueIdResponse response = blockingStub.getId(Empty.getDefaultInstance());
+                    idSet.add(response.getId());
+                } catch (Exception e) {
+                    e.printStackTrace(); // You can throw if you want to fail test immediately
+                } finally {
+                    latch.countDown();
+                }
             });
-            t.start();
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        Set<Long> set = new HashSet<>();
-        for(long id: ids) set.add(id);
-        assertEquals(ids.length, set.size());
+        }
+
+        boolean completed = latch.await(10, TimeUnit.SECONDS);
+        executor.shutdown();
+
+        if (!completed) {
+            throw new AssertionError("Not all requests completed within timeout");
+        }
+        assertEquals(totalRequests, idSet.size());
     }
 
 }

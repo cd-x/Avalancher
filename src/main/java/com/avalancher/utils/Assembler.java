@@ -1,6 +1,6 @@
 package com.avalancher.utils;
 
-public class IdGenerator {
+public class Assembler {
     private static final long CUSTOM_EPOCH = 1609459200000L; // Jan 1, 2021
 
     public static long getUniqueId(int workerId, int datacenterId, long timestampMillis, int sequence) {
