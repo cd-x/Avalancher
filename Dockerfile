@@ -11,10 +11,10 @@ FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # Copy only the built JAR from the previous stage
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=builder /app/target/avalancher.jar app.jar
 
 # Expose the application port
-EXPOSE 8080
+EXPOSE 50051
 
 # Run the application
 CMD ["java", "-jar", "app.jar"]
