@@ -22,7 +22,7 @@ services:
     image: rrishi633/avalancher:latest
     container_name: id-generator
     ports:
-      - "50051:50051"  # map gRPC port if needed
+      - "50051:50051"
     environment:
       - WORKER_ID=2
       - DATA_CENTER_ID=10
