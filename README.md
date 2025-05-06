@@ -29,3 +29,45 @@ services:
       - CUSTOM_EPOCH=1715000000000
     restart: unless-stopped
 ```
+
+### Client
+
+Generate stub with below proto
+
+/[v1](https://github.com/cd-x/Avalancher/blob/master/src/main/proto/avalancher.proto)
+
+```protobuf
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+
+option java_package = "com.avalancher.grpc";
+option java_multiple_files = true;
+
+service Avalancher{
+    rpc GetWorkerId(google.protobuf.Empty) returns (WorkerIdResponse);
+    rpc GetId(google.protobuf.Empty) returns (UniqueIdResponse);
+    rpc GetDatacenterId(google.protobuf.Empty) returns (DataCenterIdResponse);
+}
+
+message UniqueIdResponse{
+    int64 id = 1;
+}
+message WorkerIdResponse{
+    int64 worker_id = 1;
+}
+message DataCenterIdResponse{
+    int64 datacenter_id = 1;
+}
+```
+
+command to generate client code
+
+```shell
+protoc --java_out=./gen \
+       --grpc-java_out=./gen \
+       --proto_path=. \
+       avalancher.proto
+
+```
