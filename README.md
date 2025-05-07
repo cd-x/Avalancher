@@ -12,7 +12,8 @@
 
 ### Deployment
 
----
+- Assuming Istio handles security aspect, Avalancher communicates directly over plain text.
+
 - Docker-compose
 ```yaml
 version: '3.8'
